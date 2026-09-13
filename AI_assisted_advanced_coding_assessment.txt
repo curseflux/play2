@@ -1,0 +1,15 @@
+AI-Assisted Advanced Coding Assessment (60 minutes)
+
+Note: This is a different coding test than the ones we’ve used in past cycles (including Autumn 2026), so you’ll have to take this test even if you’ve completed tests in previous cycles.
+
+This is a practical coding task.
+
+You will write a control policy for a simple physics simulation: a function that is called once per frame and returns a single decision about what to do next. A visual simulator is provided so you can watch your policy run and debug it. We care about how you reason about a system that unfolds over time, and about your general programming and problem-solving judgment, rather than about any specific framework, library, or concepts.
+
+You have 60 minutes. A few things to know going in:
+
+You are expected to use the AI coding assistant built into the CodeSignal editor. The assessment is designed around working with it, not in spite of it. There is no limit on how much you lean on the assistant, as long as you stay inside the CodeSignal platform. You cannot use your own AI tools or anything outside the platform.
+This is different from the Research Taste Assessment, where no AI is allowed at all. Please keep the two sets of rules clear.
+Your solution is checked by automated tests. You will see results for some test cases as you work, but passing those is not enough for a full score. There are additional scenarios your policy is run against. Aim to follow the instructions closely rather than to satisfy only the visible tests.
+Partial progress earns partial credit. You do not need a complete, perfect solution to score well, so submit whatever you have when the time is up.
+There is nothing to study in advance. This is a general programming problem, and there is no syllabus or reading list that would help you. The single most useful thing you can do is pick 60 minutes when you will not be interrupted.

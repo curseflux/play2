@@ -1,0 +1,13 @@
+Research Taste Assessment (100 minutes)
+
+Note: if you took this test for Summer 2026 or Autumn 2026, then we will reuse that submission.
+
+This test is hosted in CodeSignal's coding environment, but it is not a coding test. It is entirely written. We use that environment only so you can keep a few documents open on one screen.
+
+You will read a fictional scenario about the pre-release testing of a frontier model, and then write up how you would proceed given an ambiguous situation. We want to see how you build hypotheses from scattered pieces of information, how you prioritize when there are real tradeoffs, and how clearly you can explain your thinking. You write your answer into a template we provide. It is a plain markdown document, so you do not need to know any special formatting to fill it in.
+
+There is no single right answer here. The situation is meant to be ambiguous, and several reasonable interpretations are possible. We are not scoring which hypothesis you land on. We care about clear, careful, well-prioritized reasoning, and about how openly you lay out your assumptions and uncertainties.
+
+You have 100 minutes, and we suggest spending the first 20 or so reading carefully, which leaves about 80 minutes to write. There is real time pressure, and that is deliberate. The task is built to be doable in the time given, but most people will feel the clock. The best approach is to get a complete, solid answer to all the required parts down first, then extend or refine it if you have time left.
+
+You may not use AI assistance on this test. You can use dictionary.com to check terms, and we give you an AI safety glossary inside the test that you can search when you hit a concept you are unsure about. There is nothing to study in advance. If you want one useful piece of background, read about reasoning transparency (https://coefficientgiving.org/research/reasoning-transparency/), since that is the style of thinking we are looking for.
