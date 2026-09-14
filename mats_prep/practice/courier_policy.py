@@ -14,6 +14,9 @@ Contract
     policy(obs) -> one of "idle", "up", "down", "left", "right"
     Called once per frame. Anything else fails the episode immediately.
 
+Stuck, or not sure where to start? practice/LADDER.md breaks this into four
+rungs with measured scores, and says which of the obvious ideas is a trap.
+
 Things worth knowing before you start
 -------------------------------------
   * Many episodes run in the same process and nothing resets your globals.

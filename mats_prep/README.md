@@ -22,7 +22,8 @@ python3 watch.py courier C3_busy             # writes an HTML replay you can scr
 python3 tools/stress.py courier --n 200      # randomised scenarios nobody curated
 ```
 
-Your file is `practice/courier_policy.py`. The spec is the docstring at the
+Your file is `practice/courier_policy.py`; `practice/LADDER.md` breaks it into
+four rungs if you want a way in. The spec is the docstring at the
 top of `simlab/courier.py`, and the real spec is the `step()` method below it.
 
 Give yourself **60 minutes on a clock** and treat it like the real thing.
