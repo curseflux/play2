@@ -314,6 +314,46 @@ That last one matters. An assistant asked to fix will patch the symptom. An
 assistant asked to explain will often show you that the design is wrong,
 which is the fix you actually want.
 
+### If the assistant is weaker than the one you practised with
+
+CodeSignal's in-editor assistant is called Cosmo, and CodeSignal advertises
+the underlying model as **configurable by the customer**. So there is no
+single answer to "which model is it", and you will not know until you are in
+there. Plan for the weak case; it costs you nothing if you are wrong.
+
+A weaker model does not mean less help. It means **help you have to check
+faster.** The failure mode is not "it cannot do this", it is "it produced
+forty plausible lines and you spent six minutes finding the bug". Every
+adaptation below is about shrinking that check.
+
+- **Ask for smaller units.** A ten-line helper you can read in fifteen
+  seconds, not a whole policy. If you cannot verify it at a glance, you did
+  not save any time.
+- **Prefer tasks where wrong is obvious.** A scenario generator either runs
+  or it does not. A spec summary you can diff against `step()` yourself.
+  Those are safe at any model quality.
+- **Ask it to explain, not to fix.** An explanation you can evaluate by
+  reading. A patch you can only evaluate by running.
+- **Replace judgment with measurement.** The one delegation that degrades
+  badly is *"give me five inputs where this fails"* — a weaker model will
+  invent plausible failure modes that do not exist, and you will chase them.
+  Ask it instead to write the randomised scenario generator, and let the
+  **data** find the failures. Mechanical task, verifiable output, and the
+  answer is better than any model's guess.
+- **Never paste in code you cannot read.** This is the standing rule and it
+  simply binds harder.
+
+Notice that none of this is a special weak-model workflow. It is the same
+workflow, with the units made smaller. If you build the habit of owning the
+control idea and delegating only bounded, checkable work, the model's quality
+stops being a variable you have to worry about.
+
+**How to practise for it:** use the *weakest* model you have access to, not
+the strongest. It is closer to the worst case and it forces the small-unit
+habit. Then do one full run with **no assistant at all**. If you can solve
+`courier` unassisted in 60 minutes, the assistant becomes upside instead of a
+dependency, and that is the only form of robustness that actually holds.
+
 ### If the assistant turns out to be weak
 
 You will not know which model is behind the editor, and it does not change the
