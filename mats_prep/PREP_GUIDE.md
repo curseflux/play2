@@ -314,6 +314,45 @@ That last one matters. An assistant asked to fix will patch the symptom. An
 assistant asked to explain will often show you that the design is wrong,
 which is the fix you actually want.
 
+### If the assistant turns out to be weak
+
+You will not know which model is behind the editor, and it does not change the
+plan much — but it does change the failure mode you should fear.
+
+A weaker assistant is **not** mainly a risk of getting no help. It is a risk of
+getting *confident, plausible, wrong* help: eighty lines of reasonable-looking
+heuristics that you then debug for half an hour, having never built your own
+model of the problem. That risk goes **up**, not down, as the model gets
+weaker. The correct response is to delegate *less of the thinking*, not to
+worry more.
+
+Practical adjustments, in order of value:
+
+1. **Run everything it writes. Never approve by reading.** Plausible code is
+   exactly what a weaker model is best at producing. A five-second test run
+   settles what ten seconds of reading cannot.
+2. **One task per prompt.** "Write this helper" not "write the policy and
+   handle the edge cases and add comments". Compound requests are where weaker
+   models silently drop a clause.
+3. **Paste the code into the prompt.** Do not rely on it having correctly
+   picked up the editor context, and do not rely on it remembering what you
+   said fifteen minutes ago.
+4. **Shift what you delegate toward the mechanical.** Algebra, boilerplate, a
+   scenario generator, renaming — these barely degrade. Open-ended design
+   critique degrades a lot. Make critique concrete instead: *"list five inputs
+   where this returns NaN, raises, or returns None"* is a checklist a weak
+   model can run; *"is my design sound?"* is not.
+5. **Keep your own check on scope.** A weaker model is more likely to
+   enthusiastically agree that you need a Kalman filter.
+
+Two things stay true regardless of the model. First, the single highest-value
+prompt — *"summarise this simulator: state variables, units, update order,
+termination conditions, ambiguities"* — is a reading-comprehension task on a
+short file, which is the easiest thing you will ask all hour. Second, opening
+with *"write me a policy for this"* produces a mediocre reactive heuristic from
+**any** model, strong or weak, because the prompt does not contain the
+insight. The delegation boundary matters more than what is behind it.
+
 ---
 
 ## 6. What separates a good answer from a bad one
