@@ -167,3 +167,64 @@ if obs["t"] % 20 == 0:                       # every 20th frame, not every frame
 One line per 20 frames is 60 lines for a whole episode — readable. And the
 same rule applies to what goes in it: your decision variables and the win
 condition split into its parts, not the state you were handed.
+
+---
+
+# Appendix: when the extra machinery is not worth it
+
+The shipped `dog` reference is a ~60-line short-horizon rollout. A reader of
+this repo sent in an 8-line policy:
+
+```python
+aim = gap_centre - gap_height / 4.5      # aim BELOW the middle of the gap
+if stamina and x < pipe.x + pipe.half_w and y < aim:
+    return True
+return False
+```
+
+Measured head to head:
+
+```
+                       graded set   400 random courses
+  8-line aim point       18/18            83.2%
+  60-line rollout        18/18            85.0%
+
+  paired: both pass 324, aim-only 9, rollout-only 16, neither 51
+  25 discordant pairs, 16/9 split -> not significant
+```
+
+They are the same policy as far as this environment can tell, and the
+discordant cases show no pattern in gap width, sight or stamina. The rollout
+is four times the code for noise.
+
+**Why the 8-liner works.** The aim point is below the gap centre on purpose.
+A bounce sets `vy` upward, so you always arrive at a pipe *rising*: aiming low
+means the overshoot lands you in the middle instead of through the top. It is
+the offset that does the work, not the threshold — aiming at the exact centre
+scores 8/18 and 65%.
+
+**Why write the rollout at all.** It needs no insight into the geometry. Given
+a deterministic simulator and a small action set, "simulate both options and
+take the one still alive" works before you understand the problem. That is
+worth something when you are 15 minutes in and do not yet see the aim point.
+It stops being worth it the moment you do.
+
+The honest rule: **rollout buys generality, not accuracy.** Reach for it when
+the closed form does not exist — moving targets, several interacting
+constraints, a scoring rule you cannot invert. When a one-line aim point
+exists, it wins on every axis that matters under a clock: fewer places to be
+wrong, faster to debug, and a reviewer can check it by reading.
+
+**The one criticism of the 8-liner.** `4.5` sits at the bottom edge of its safe
+range:
+
+```
+  divisor      2.5   3.0   3.5   4.0   4.5   5.0   6.0   8.0   12.0   inf
+  curated     0/18  3/18  9/18 14/18 18/18 18/18 18/18 18/18 16/18  8/18
+  random      5.6% 36.8% 68.0% 77.6% 82.8% 84.0% 84.4% 82.4% 82.4% 65.2%
+```
+
+Flat from 4.5 to 8, collapsing below 4. Sitting at the first value that passes
+puts you on the cliff edge; 5.5 or 6 is the middle of the plateau and costs
+nothing. **When you tune a constant, sweep it and stand in the middle of the
+range that works, not at the edge where it started working.**
