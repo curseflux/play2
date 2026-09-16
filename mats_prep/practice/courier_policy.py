@@ -33,7 +33,7 @@ Things worth knowing before you start
 
 import math
 
-DEBUG: dict = {}      # anything you put here shows up in watch.py's side panel
+DEBUG: dict = {}      # see DEBUGGING.md - this is the fastest loop you have
 
 
 def policy(obs: dict) -> str:

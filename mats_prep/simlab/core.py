@@ -87,9 +87,6 @@ def run_episode(
     frames = 0
     trace: List[dict] = []
 
-    if record:
-        trace.append(_frame_snapshot(env, None, debug_source))
-
     while not env.done:
         try:
             action = policy_fn(copy.deepcopy(obs))
@@ -108,10 +105,19 @@ def run_episode(
             res.wall_ms = (time.perf_counter() - t0) * 1000.0
             return res
 
-        obs = env.step(action)
-        frames += 1
+        # Recorded BEFORE stepping, so one row of the trace is one decision:
+        # the state the policy was shown, the action it chose, and whatever it
+        # put in DEBUG while choosing. Recording after the step would pair your
+        # debug values with the state they produced, which is off by one frame
+        # and very confusing to read.
         if record:
             trace.append(_frame_snapshot(env, action, debug_source))
+
+        obs = env.step(action)
+        frames += 1
+
+    if record:
+        trace.append(_frame_snapshot(env, None, None))     # terminal state
 
     res = env.result(env.name, frames)
     res.trace = trace if record else None

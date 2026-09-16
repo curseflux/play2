@@ -26,12 +26,40 @@ from simlab.render import write_html                        # noqa: E402
 from simlab.scenarios import courier_visible, lander_visible  # noqa: E402
 
 
+def _dump(trace: list, span: str) -> None:
+    """Print a slice of the trace as a table: state, action, and your DEBUG."""
+    lo, _, hi = span.partition(":")
+    lo = int(lo or 0)
+    hi = int(hi) if hi else lo + 25
+    rows = [f for f in trace if lo <= f.get("t", -1) < hi]
+    if not rows:
+        print(f"no frames in [{lo}, {hi})")
+        return
+    skip = {"t", "action", "debug", "states", "hazards"}
+    cols = [k for k in rows[0] if k not in skip]
+    dbg = sorted(rows[0].get("debug", {}))
+    head = ["t"] + cols + ["act"] + dbg
+    print("  " + "  ".join(h[:8].rjust(8) for h in head))
+    for f in rows:
+        cells = [str(f["t"])]
+        for k in cols:
+            v = f.get(k)
+            cells.append(f"{v:.2f}" if isinstance(v, float) else str(v))
+        cells.append(str(f.get("action")))
+        for k in dbg:
+            v = f.get("debug", {}).get(k)
+            cells.append(f"{v:.3f}" if isinstance(v, float) else str(v))
+        print("  " + "  ".join(c[:8].rjust(8) for c in cells))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("env", choices=sorted(ENV_CLASS))
     ap.add_argument("scenario")
     ap.add_argument("--policy", default=None)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--dump", default=None,
+                    help="also print frames FROM:TO as a text table, e.g. 80:110")
     args = ap.parse_args()
 
     vis = lander_visible() if args.env == "lander" else courier_visible()
@@ -49,6 +77,9 @@ def main() -> int:
 
     env = ENV_CLASS[args.env](pool[args.scenario])
     res = run_episode(env, mod.policy, record=True, debug_source=mod)
+    if args.dump:
+        _dump(res.trace or [], args.dump)
+
     out = pathlib.Path(args.out) if args.out else HERE / "traces" / f"{args.env}_{args.scenario}.html"
     write_html(out, f"{args.env} / {args.scenario} - {res.reason}", env.static(), res.trace or [])
     print(res.line())

@@ -11,6 +11,7 @@ tests you cannot see.
 | `PREP_GUIDE.md` | how to prepare and how to spend the 60 minutes | first, once, slowly |
 | `WORKED_EXAMPLE.md` | a full solve with the reasoning written down as it happened | second |
 | `CHEATSHEET.md` | one page of formulas and traps | skim the morning of the test |
+| `DEBUGGING.md` | how to see what your policy is thinking | the first time a score stops making sense |
 
 ## Do the practice problem
 

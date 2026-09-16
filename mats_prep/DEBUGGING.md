@@ -1,0 +1,115 @@
+# The DEBUG panel
+
+Your policy is called 1200 times. `print()` gives you 1200 lines you will not
+read. The `DEBUG` dict gives you the same numbers **lined up with the frame
+they belong to**, so you can scrub to the moment it goes wrong and read what
+the policy was thinking at that instant.
+
+## Wiring it up — three lines
+
+```python
+DEBUG: dict = {}          # module level, next to your imports
+
+def policy(obs):
+    ...
+    DEBUG.clear()                                   # <- do not skip this
+    DEBUG.update(phase=phase, dist=dist, want=speed,
+                 speed=math.hypot(vx, vy),
+                 can_grab=math.hypot(vx, vy) <= obs["grab_speed"],
+                 in_range=dist <= obs["pickup_radius"])
+    return action
+```
+
+The runner snapshots `DEBUG` straight after each call to `policy`, so one row
+of the trace is **one decision**: the state your policy was shown, the action
+it chose, and what it was thinking while choosing. Nothing is off by a frame.
+
+`DEBUG.clear()` matters because the dict is a module global. Without it, a key
+you set on one branch survives into frames that never took that branch, and
+you will debug a number your policy did not compute.
+
+## Reading it — two ways
+
+**In the browser**, scrub through the animation and read the side panel:
+
+```bash
+python3 watch.py courier C3_busy --policy practice/courier_policy.py
+```
+
+**In the terminal**, when you already know roughly when it breaks:
+
+```bash
+python3 watch.py courier C3_busy --dump 120:136
+```
+
+```
+     t       x       y      vx      vy    act  can_grab   dist  in_range   phase   speed    want
+   120   13.38   35.68   -5.54    4.80   idle     False  3.025     False deliver   7.331   7.129
+   121   12.89   36.11   -4.98    4.32   idle     False  2.365      True deliver   6.598   6.304
+   122   12.44   36.50   -4.49    3.89  right     False  1.772      True deliver   5.938   5.455
+   123   12.15   36.85   -2.84    3.50   left     False  1.328      True deliver   4.507   4.723
+   124   11.78   37.16   -3.75    3.15  right     False  0.838      True deliver   4.901   3.751
+   125   11.56   37.45   -2.18    2.84   down     False  0.496      True deliver   3.577   2.888
+   126   11.36   37.58   -1.96    1.35     up      True 23.048     False   fetch   2.382  12.000
+```
+
+`in_range=True` and `can_grab=False` for five frames running: the drone is
+sitting on top of the dropoff, too fast to trade, wobbling. The score does not
+show that. The panel does.
+
+## What to put in it
+
+Not the state. `x`, `y`, `vx`, `vy` are already in the panel. Put in **what
+your policy computed and cannot otherwise see**:
+
+| put this in | catches |
+|---|---|
+| the target you chose (`tx`, `ty`, or the parcel id) | flipping between two targets every frame |
+| your desired speed vs your actual speed | an arrival profile that is too aggressive or too slow |
+| which branch fired, as a string (`"fetch"`, `"deliver"`, `"avoid"`) | a branch that never runs, or runs constantly |
+| **the win condition, split into booleans** | the single best one — see below |
+| the intermediate you are least sure about | the thing you got wrong |
+
+The win-condition trick is worth the whole panel. The rules say you trade when
+`in_range AND slow_enough`. Put both in as separate booleans. Now you can see
+at a glance whether you are failing because you never arrive, or because you
+arrive and cannot stop. Those are completely different bugs and the score
+calls them both "0 delivered".
+
+## Scanning instead of scrubbing
+
+Once the values are in the trace you can search them, which beats scrubbing
+when you do not know where to look:
+
+```python
+res = run_episode(env, mod.policy, record=True, debug_source=mod)
+bad = [f for f in res.trace
+       if f["debug"].get("in_range") and not f["debug"].get("can_grab")]
+print(len(bad), "frames in range but too fast")
+```
+
+Run on the example above:
+
+```
+buggy  delivered 13   163 frames in range but too fast  (13.6% of the episode)
+fixed  delivered 13    96 frames in range but too fast  ( 8.0% of the episode)
+```
+
+Identical score on that scenario — and a real defect, worth **44% → 62%**
+across the full set once fixed. That is the argument for the panel in one
+line: **the score tells you whether you are winning, DEBUG tells you why.**
+
+## On the real assessment
+
+You will not have this. What you will have is `print()`, and the discipline
+transfers if you keep it cheap:
+
+```python
+if obs["t"] % 20 == 0:                       # every 20th frame, not every frame
+    print(f"{obs['t']:4d} d={dist:6.2f} want={speed:5.2f} "
+          f"have={math.hypot(vx,vy):5.2f} {phase}")
+```
+
+One line per 20 frames is 60 lines for a whole episode — readable. And the
+same rule applies to what goes in it: your decision variables and the win
+condition split into its parts, not the state you were handed.
