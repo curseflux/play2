@@ -109,8 +109,10 @@ function draw(){
     const v = f[k];
     t += k.padEnd(9) + (typeof v === 'number' ? v.toFixed(2).padStart(9) : String(v)) + '\\n';
   }
-  if(f.debug){ t += '\\n-- DEBUG --\\n';
-    for(const k of Object.keys(f.debug)){ const v = f.debug[k];
+  t += '\\n-- DEBUG --\\n';
+  if(!f.debug){ t += '(no DEBUG dict in your policy)\\n'; }
+  else if(Object.keys(f.debug).length === 0){ t += '(empty on this frame - the\\n policy returned before\\n reaching DEBUG.update)\\n'; }
+  else { for(const k of Object.keys(f.debug)){ const v = f.debug[k];
       t += k.padEnd(9) + (typeof v === 'number' ? v.toFixed(3).padStart(9) : String(v)) + '\\n'; } }
   hud.textContent = t;
   tlabel.textContent = `${i} / ${F.length - 1}`;

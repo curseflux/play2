@@ -57,6 +57,60 @@ python3 watch.py courier C3_busy --dump 120:136
 sitting on top of the dropoff, too fast to trade, wobbling. The score does not
 show that. The panel does.
 
+## When the panel is empty
+
+`watch.py` now tells you which of these it is. In order of likelihood:
+
+**1. The DEBUG lines never run.** They are below a `return` that always fires.
+The stub ships with `return "idle"` at the bottom of `policy`; if you pasted
+the DEBUG lines after it, they are unreachable.
+
+```python
+    return "idle"
+    DEBUG.clear()          # dead code. python will not warn you.
+```
+
+**2. Frame 0 takes an early return.** The viewer opens on frame 0, and a
+guard like `if agent["stunned"] > 0: return "idle"` above your DEBUG lines
+means the first frames have nothing. Scrub forward and the values appear.
+Fix it properly by writing DEBUG *before* the early returns:
+
+```python
+def policy(obs):
+    DEBUG.clear()
+    DEBUG.update(t=obs["t"], stunned=obs["agent"]["stunned"])   # always runs
+    if obs["agent"]["stunned"] > 0:
+        DEBUG.update(branch="stunned")
+        return "idle"
+    ...
+    DEBUG.update(branch="fetch", dist=dist, want=speed)         # add as you go
+```
+
+Updating in stages like this is strictly better anyway: `branch` then tells
+you which path each frame took, which is one of the most useful things you
+can put in there.
+
+**3. You are looking at a stale file.** `watch.py` overwrites
+`traces/<env>_<scenario>.html`, but your browser may serve the cached copy.
+Hard-reload (Ctrl-Shift-R / Cmd-Shift-R).
+
+**4. `--policy` points somewhere else.** With no `--policy`, courier defaults
+to `practice/courier_policy.py`. If you are editing a different file, say so
+on the command line.
+
+**5. `NameError` in the DEBUG line itself.** Referencing a variable that does
+not exist yet kills the episode. `grade.py` reports it as
+`policy raised NameError: ...` — check there if the score suddenly went to 0.
+
+The fastest check for all of these:
+
+```bash
+python3 watch.py courier C1_open_field --dump 0:6
+```
+
+If the debug columns are missing or `None`, it is 1 or 2. If they are there,
+it was 3.
+
 ## What to put in it
 
 Not the state. `x`, `y`, `vx`, `vy` are already in the panel. Put in **what

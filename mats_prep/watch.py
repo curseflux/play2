@@ -26,6 +26,33 @@ from simlab.render import write_html                        # noqa: E402
 from simlab.scenarios import courier_visible, lander_visible  # noqa: E402
 
 
+def _debug_report(trace: list, mod, path: pathlib.Path) -> None:
+    """Tell the user what happened to their DEBUG dict instead of failing silently."""
+    decisions = [f for f in trace if f.get("action") is not None]
+    if not decisions:
+        return
+    if not hasattr(mod, "DEBUG"):
+        print(f"  note: {path.name} has no module-level DEBUG dict, so the side "
+              f"panel will have no debug section.")
+        return
+    if not isinstance(getattr(mod, "DEBUG"), dict):
+        print(f"  note: DEBUG in {path.name} is {type(mod.DEBUG).__name__}, not a dict. "
+              f"The viewer only reads a dict.")
+        return
+    filled = [f for f in decisions if f.get("debug")]
+    if not filled:
+        print("  note: DEBUG was EMPTY on every frame. Usual causes, in order:\n"
+              "        1. the DEBUG lines sit after a `return` and never run\n"
+              "        2. every frame takes an early-return path above them\n"
+              "        3. --policy points at a different file than the one you edited")
+    elif len(filled) < len(decisions):
+        first = filled[0]["t"]
+        print(f"  note: DEBUG was written on {len(filled)}/{len(decisions)} frames "
+              f"(first at t={first}). Frames without it took an early return "
+              f"above your DEBUG lines - including frame 0, which is what the "
+              f"viewer opens on.")
+
+
 def _dump(trace: list, span: str) -> None:
     """Print a slice of the trace as a table: state, action, and your DEBUG."""
     lo, _, hi = span.partition(":")
@@ -37,7 +64,7 @@ def _dump(trace: list, span: str) -> None:
         return
     skip = {"t", "action", "debug", "states", "hazards"}
     cols = [k for k in rows[0] if k not in skip]
-    dbg = sorted(rows[0].get("debug", {}))
+    dbg = sorted({k for f in rows for k in f.get("debug", {})})   # union, not row 0
     head = ["t"] + cols + ["act"] + dbg
     print("  " + "  ".join(h[:8].rjust(8) for h in head))
     for f in rows:
@@ -77,6 +104,8 @@ def main() -> int:
 
     env = ENV_CLASS[args.env](pool[args.scenario])
     res = run_episode(env, mod.policy, record=True, debug_source=mod)
+    _debug_report(res.trace or [], mod, path)
+
     if args.dump:
         _dump(res.trace or [], args.dump)
 
