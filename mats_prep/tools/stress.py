@@ -27,8 +27,9 @@ sys.path.insert(0, str(HERE))
 from grade import DEFAULT_POLICY, load_policy                # noqa: E402
 from simlab.core import run_episode                          # noqa: E402
 from simlab.courier import CourierEnv                        # noqa: E402
+from simlab.dog import DogEnv                                 # noqa: E402
 from simlab.lander import LanderEnv, LanderScenario          # noqa: E402
-from simlab.scenarios import make_courier                    # noqa: E402
+from simlab.scenarios import make_courier, make_dog          # noqa: E402
 
 
 def lander_cases(n: int, seed: int):
@@ -66,9 +67,30 @@ def courier_cases(n: int, seed: int):
             cluster=r.random() < 0.3)
 
 
+def dog_cases(n: int, seed: int):
+    r = random.Random(seed)
+    for i in range(n):
+        ceiling = r.uniform(34, 95)
+        gap = r.uniform(12.0, min(26.0, ceiling * 0.45))
+        g = r.uniform(14, 55)
+        # a bounce has to FIT in the gap: tie its rise to the usable band, not
+        # to the ceiling. Sizing it off the ceiling generates worlds where every
+        # bounce overshoots the gap and no policy can hold station.
+        band = max(2.0, gap - 2 * 1.5)
+        rise = r.uniform(0.25, 0.70) * band
+        yield make_dog(
+            f"rnd{i:03d}", seed=r.randrange(1 << 30),
+            n_pipes=r.randint(8, 26), spacing=r.uniform(30, 75),
+            gap=gap, ceiling=ceiling, max_step=r.uniform(8, 30),
+            gravity=g, bounce_impulse=math.sqrt(2 * g * rise),
+            forward_speed=r.uniform(14, 40), stamina_max=r.randint(3, 12),
+            regen_period=r.randint(4, 11), sight=r.randint(1, 4),
+            gap_jitter=r.choice([0.0, 0.0, 3.0]))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("env", choices=["lander", "courier"])
+    ap.add_argument("env", choices=["lander", "courier", "dog"])
     ap.add_argument("--policy", default=None)
     ap.add_argument("--n", type=int, default=200)
     ap.add_argument("--seed", type=int, default=1)
@@ -84,14 +106,15 @@ def main() -> int:
     shown = []
     ok = 0
     scores = []
-    cases = (lander_cases if args.env == "lander" else courier_cases)(args.n, args.seed)
-    env_cls = LanderEnv if args.env == "lander" else CourierEnv
+    cases = {"lander": lander_cases, "courier": courier_cases,
+             "dog": dog_cases}[args.env](args.n, args.seed)
+    env_cls = {"lander": LanderEnv, "courier": CourierEnv, "dog": DogEnv}[args.env]
 
     for sc in cases:
         env = env_cls(sc)
         res = run_episode(env, mod.policy, debug_source=mod)
         scores.append(res.score)
-        good = res.passed if args.env == "lander" else res.score > 0
+        good = res.passed if args.env in ("lander", "dog") else res.score > 0
         if good:
             ok += 1
         else:
@@ -102,7 +125,10 @@ def main() -> int:
                  "sideways at touchdown" if "slide" in r else
                  "missed the pad" if "off pad" in r else
                  "left the arena" if "bounds" in r or "escaped" in r else
-                 "delivered nothing" if args.env == "courier" else "other")
+                 "delivered nothing" if args.env == "courier" else
+                 "fell off the bottom" if "bottom" in r else
+                 "hit the ceiling" if "ceiling" in r else
+                 "clipped a pipe" if "clipped" in r else "other")
             kinds[k] += 1
             if len(shown) < args.show:
                 shown.append(f"    {sc.name}: {r}")

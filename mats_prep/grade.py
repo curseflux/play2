@@ -30,15 +30,17 @@ sys.path.insert(0, str(HERE))
 
 from simlab.core import EpisodeResult, run_episode          # noqa: E402
 from simlab.courier import CourierEnv                        # noqa: E402
-from simlab.hidden import courier_hidden, lander_hidden      # noqa: E402
+from simlab.dog import DogEnv                                 # noqa: E402
+from simlab.hidden import courier_hidden, dog_hidden, lander_hidden  # noqa: E402
 from simlab.lander import LanderEnv                          # noqa: E402
-from simlab.scenarios import courier_visible, lander_visible # noqa: E402
+from simlab.scenarios import courier_visible, dog_visible, lander_visible  # noqa: E402
 
 DEFAULT_POLICY = {
     "lander": "solutions/lander_reference.py",
     "courier": "practice/courier_policy.py",
+    "dog": "practice/dog_policy.py",
 }
-ENV_CLASS = {"lander": LanderEnv, "courier": CourierEnv}
+ENV_CLASS = {"lander": LanderEnv, "courier": CourierEnv, "dog": DogEnv}
 
 
 def load_policy(path: pathlib.Path):
@@ -74,8 +76,10 @@ def main() -> int:
     mod = load_policy(path)
     env_cls = ENV_CLASS[args.env]
 
-    visible = lander_visible() if args.env == "lander" else courier_visible()
-    hidden = lander_hidden() if args.env == "lander" else courier_hidden()
+    visible = {"lander": lander_visible, "courier": courier_visible,
+               "dog": dog_visible}[args.env]()
+    hidden = {"lander": lander_hidden, "courier": courier_hidden,
+              "dog": dog_hidden}[args.env]()
     random.Random(20260914).shuffle(hidden)
 
     vis_results: List[EpisodeResult] = []

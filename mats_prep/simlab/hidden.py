@@ -18,8 +18,9 @@ from typing import List, Tuple
 
 from ._hidden_blob import BLOB
 from .courier import CourierScenario
+from .dog import DogScenario
 from .lander import LanderScenario
-from .scenarios import make_courier
+from .scenarios import make_courier, make_dog
 
 
 def _decode() -> dict:
@@ -41,4 +42,13 @@ def courier_hidden() -> List[Tuple[str, CourierScenario]]:
     for i, kw in enumerate(data["courier"], start=1):
         real = kw.pop("_label")
         out.append((f"hidden_C{i:02d}", make_courier(real, **kw)))
+    return out
+
+
+def dog_hidden() -> List[Tuple[str, DogScenario]]:
+    data = _decode()
+    out = []
+    for i, kw in enumerate(data["dog"], start=1):
+        real = kw.pop("_label")
+        out.append((f"hidden_D{i:02d}", make_dog(real, **kw)))
     return out

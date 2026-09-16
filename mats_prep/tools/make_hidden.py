@@ -43,8 +43,26 @@ COURIER = [
     dict(_label="rerun_of_C2",  seed=23,  n_hazards=2, target=11),
 ]
 
+DOG = [
+    dict(_label="gentle",      seed=201, gap=15.0, max_step=12.0),
+    dict(_label="needle",      seed=211, gap=10.5, max_step=14.0, target=10),
+    dict(_label="big_steps",   seed=223, gap=13.0, max_step=28.0, target=11),
+    dict(_label="tall_room",   seed=227, gap=13.0, ceiling=90.0, max_step=32.0, target=11),
+    dict(_label="squeeze",     seed=233, gap=11.0, ceiling=38.0, max_step=9.0, target=11),
+    dict(_label="tired_dog",   seed=239, gap=14.0, stamina_max=2, regen_period=8, target=11),
+    dict(_label="heavy_dog",   seed=251, gap=13.0, gravity=52.0, bounce_impulse=25.0, target=11),
+    dict(_label="floaty_dog",  seed=257, gap=13.0, gravity=13.0, bounce_impulse=12.5, target=11),
+    dict(_label="sprinter",    seed=263, gap=14.0, forward_speed=38.0, spacing=72.0, target=11),
+    dict(_label="crowded",     seed=269, gap=14.0, spacing=30.0, max_step=10.0, target=11),
+    dict(_label="one_eye",     seed=271, gap=13.0, sight=1, max_step=14.0, target=11),
+    dict(_label="ragged",      seed=277, gap=14.0, gap_jitter=4.0, max_step=18.0, target=11),
+    dict(_label="marathon",    seed=281, gap=13.0, n_pipes=30, max_step=16.0, target=24),
+    dict(_label="rerun_of_D2", seed=17,  gap=13.0, max_step=16.0, target=12),
+]
+
 if __name__ == "__main__":
-    payload = json.dumps({"lander": LANDER, "courier": COURIER}, separators=(",", ":"))
+    payload = json.dumps({"lander": LANDER, "courier": COURIER, "dog": DOG},
+                         separators=(",", ":"))
     blob = base64.b64encode(zlib.compress(payload.encode("utf-8"), 9)).decode("ascii")
     lines = [blob[i:i + 96] for i in range(0, len(blob), 96)]
     body = '"\n    "'.join(lines)
@@ -54,4 +72,4 @@ if __name__ == "__main__":
         f'BLOB = (\n    "{body}"\n)\n'
     )
     print(f"wrote {out} ({len(blob)} chars, "
-          f"{len(LANDER)} lander + {len(COURIER)} courier)")
+          f"{len(LANDER)} lander + {len(COURIER)} courier + {len(DOG)} dog)")

@@ -13,6 +13,7 @@ import random
 from typing import List
 
 from .courier import CourierScenario, Hazard, Parcel
+from .dog import DogScenario, Pipe
 from .lander import LanderScenario
 
 
@@ -75,4 +76,52 @@ def courier_visible() -> List[CourierScenario]:
         make_courier("C2_two_hazards", seed=23, n_hazards=2, target=11),
         make_courier("C3_busy", seed=37, n_hazards=5, target=9),
         make_courier("C4_wide_arena", seed=41, n_hazards=3, w=170, h=70, target=10),
+    ]
+
+
+def make_dog(name: str, seed: int, *, n_pipes: int = 14, spacing: float = 50.0,
+             gap: float = 16.0, ceiling: float = 60.0, max_step: float = 18.0,
+             half_w: float = 3.0, first_x: float = 62.0, target: int = 0,
+             gravity: float = 30.0, bounce_impulse: float = 19.0,
+             forward_speed: float = 22.0, stamina_max: int = 5,
+             regen_period: int = 6, sight: int = 3,
+             gap_jitter: float = 0.0) -> DogScenario:
+    """A course of pipes whose gaps random-walk within reach of each other."""
+    rng = random.Random(seed)
+    margin = 4.0
+    lo_c, hi_c = gap / 2 + margin, ceiling - gap / 2 - margin
+
+    # Never generate a step the dog physically cannot climb. One bounce started
+    # at the apex of the last one gains impulse^2/(2g) and costs impulse/(g*dt)
+    # frames; between pipes there is only so much time and so much stamina.
+    dt = 0.1
+    frames = spacing / (forward_speed * dt)
+    per_cycle = bounce_impulse / max(gravity * dt, 1e-9)
+    cycles = min(frames / max(per_cycle, 1e-9),
+                 stamina_max + frames / max(regen_period, 1))
+    climb = cycles * bounce_impulse ** 2 / (2.0 * gravity)
+    max_step = min(max_step, 0.55 * climb)
+    centre = (lo_c + hi_c) / 2
+    pipes: List[Pipe] = []
+    for i in range(n_pipes):
+        centre = min(max(centre + rng.uniform(-max_step, max_step), lo_c), hi_c)
+        g = gap + rng.uniform(-gap_jitter, gap_jitter)
+        g = max(g, 4.0 * 1.5 + 2.0)          # never narrower than the dog plus slack
+        pipes.append(Pipe(first_x + i * spacing, half_w,
+                          centre - g / 2, centre + g / 2))
+    frames = int((first_x + n_pipes * spacing + 40.0) / (forward_speed * 0.1)) + 60
+    return DogScenario(name=name, ceiling=ceiling, y0=centre if n_pipes == 0 else
+                       (pipes[0].gap_lo + pipes[0].gap_hi) / 2,
+                       gravity=gravity, bounce_impulse=bounce_impulse,
+                       forward_speed=forward_speed, stamina_max=stamina_max,
+                       regen_period=regen_period, sight=sight,
+                       max_frames=frames, target=target, pipes=pipes)
+
+
+def dog_visible() -> List[DogScenario]:
+    return [
+        make_dog("D1_warmup", seed=3, gap=16.0, max_step=14.0),
+        make_dog("D2_standard", seed=17, gap=13.0, max_step=16.0, target=12),
+        make_dog("D3_narrow", seed=29, gap=12.0, max_step=18.0, target=11),
+        make_dog("D4_low_roof", seed=43, gap=11.0, ceiling=44.0, max_step=12.0, target=10),
     ]

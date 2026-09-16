@@ -21,9 +21,9 @@ sys.path.insert(0, str(HERE))
 
 from grade import DEFAULT_POLICY, ENV_CLASS, load_policy   # noqa: E402
 from simlab.core import run_episode                        # noqa: E402
-from simlab.hidden import courier_hidden, lander_hidden     # noqa: E402
+from simlab.hidden import courier_hidden, dog_hidden, lander_hidden  # noqa: E402
 from simlab.render import write_html                        # noqa: E402
-from simlab.scenarios import courier_visible, lander_visible  # noqa: E402
+from simlab.scenarios import courier_visible, dog_visible, lander_visible  # noqa: E402
 
 
 def _debug_report(trace: list, mod, path: pathlib.Path) -> None:
@@ -89,8 +89,10 @@ def main() -> int:
                     help="also print frames FROM:TO as a text table, e.g. 80:110")
     args = ap.parse_args()
 
-    vis = lander_visible() if args.env == "lander" else courier_visible()
-    hid = lander_hidden() if args.env == "lander" else courier_hidden()
+    vis = {"lander": lander_visible, "courier": courier_visible,
+           "dog": dog_visible}[args.env]()
+    hid = {"lander": lander_hidden, "courier": courier_hidden,
+           "dog": dog_hidden}[args.env]()
     pool = {s.name: s for s in vis}
     pool.update({label: sc for label, sc in hid})       # hidden_L03 etc, once revealed
     if args.scenario not in pool:

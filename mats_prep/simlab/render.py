@@ -99,10 +99,49 @@ function drawCourier(f){
   g.moveTo(X(f.x), Y(f.y)); g.lineTo(X(f.x) + f.vx * sc * 0.5, Y(f.y) - f.vy * sc * 0.5); g.stroke();
 }
 
+function drawDog(f){
+  const view = 170, pad = 16;
+  const sx = (cv.width - 2*pad) / view, sy = (cv.height - 2*pad) / S.ceiling;
+  const cam = f.x - view * 0.32;
+  const X = x => pad + (x - cam) * sx, Y = y => cv.height - pad - y * sy;
+  g.fillStyle = '#1a2129'; g.fillRect(0, Y(0), cv.width, cv.height);
+  g.fillStyle = '#161d24'; g.fillRect(0, 0, cv.width, Y(S.ceiling));
+  g.strokeStyle = '#3d4b59'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(0, Y(0)); g.lineTo(cv.width, Y(0));
+  g.moveTo(0, Y(S.ceiling)); g.lineTo(cv.width, Y(S.ceiling)); g.stroke();
+  S.pipes.forEach((p, k) => {
+    const px = p[0], hw = p[1], lo = p[2], hi = p[3];
+    if(px + hw < cam - 5 || px - hw > cam + view + 5) return;
+    const cleared = px + hw < f.x - S.dog_radius;
+    g.fillStyle = cleared ? '#243b2e' : '#2f4756';
+    g.fillRect(X(px - hw), Y(lo), 2*hw*sx, Y(0) - Y(lo));
+    g.fillRect(X(px - hw), Y(S.ceiling), 2*hw*sx, Y(hi) - Y(S.ceiling));
+    g.strokeStyle = cleared ? '#3d7a58' : '#4ea3ff';
+    g.strokeRect(X(px - hw), Y(hi), 2*hw*sx, Y(lo) - Y(hi));
+    g.fillStyle = '#5f7c96'; g.font = '10px monospace';
+    g.fillText(String(k+1), X(px) - 3, Y(S.ceiling) + 12);
+  });
+  g.strokeStyle = '#33506b'; g.lineWidth = 1; g.beginPath();
+  for(let k = Math.max(0, i - 90); k <= i; k++){ const q = F[k];
+    k === Math.max(0, i - 90) ? g.moveTo(X(q.x), Y(q.y)) : g.lineTo(X(q.x), Y(q.y)); }
+  g.stroke();
+  const r = S.dog_radius * sx;
+  g.fillStyle = f.action === true ? '#ffd479' : '#e8eef5';
+  g.fillRect(X(f.x) - r, Y(f.y) - S.dog_radius * sy, 2*r, 2*S.dog_radius*sy);
+  g.strokeStyle = '#7fe08a'; g.lineWidth = 2; g.beginPath();
+  g.moveTo(X(f.x), Y(f.y)); g.lineTo(X(f.x), Y(f.y) - f.vy * sy * 0.25); g.stroke();
+  const bw = 90, bx = cv.width - bw - 14;
+  g.fillStyle = '#243040'; g.fillRect(bx, 12, bw, 8);
+  g.fillStyle = f.stamina > 1 ? '#7fe08a' : '#c4506a';
+  g.fillRect(bx, 12, bw * f.stamina / S.stamina_max, 8);
+  g.fillStyle = '#5f7c96'; g.font = '10px monospace';
+  g.fillText('stamina', bx - 52, 20);
+}
+
 function draw(){
   const f = F[i];
   g.clearRect(0, 0, cv.width, cv.height);
-  (S.env === 'lander' ? drawLander : drawCourier)(f);
+  ({lander: drawLander, courier: drawCourier, dog: drawDog}[S.env])(f);
   let t = `frame  ${String(f.t).padStart(5)}\\naction ${String(f.action)}\\n\\n`;
   for(const k of Object.keys(f)){
     if(['t','action','debug','states','hazards'].includes(k)) continue;
