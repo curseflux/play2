@@ -123,6 +123,49 @@ Handles arrival, disturbance rejection and overshoot in five lines. The
 deadband stops the actuator chattering; one frame's worth of Δv
 (`thrust * dt`) is a good starting size.
 
+### 3.3b Why a setpoint beats a threshold — the same test, a different failure mode
+
+These two are the same inequality rearranged:
+
+```python
+dist <= speed**2 / (2*a)          # "am I close enough that I must brake?"
+speed >= sqrt(2 * a * dist)       # "am I faster than allowed at this distance?"
+```
+
+So the setpoint form buys you no accuracy. What it buys is the shape of the
+failure when `a` is wrong — and `a` is always a bit wrong, because it is your
+guess at how much authority you will really get.
+
+Measured on `courier`, same policy, same everything else, `a` set **2.2x too
+conservative**:
+
+| structure | with a correct `a` | with `a` 2.2x wrong |
+|---|---|---|
+| threshold: brake if `dist <= stop_dist` | 56% | **19%** |
+| setpoint: chase `sqrt(2·a·dist)` | 100% | **100%** (7.29 → 7.13 deliveries) |
+
+A wrong `a` in the setpoint form just moves where the speed ramp begins: you
+cruise a little slower, or brake a little later. Continuous, small.
+
+A wrong `a` in the threshold form flips a **binary** decision, and a wrongly
+flipped decision sends you at full thrust in exactly the wrong direction.
+Discontinuous, large.
+
+The second benefit is that a setpoint is a **vector** and a threshold is a
+**scalar**. `speed` includes motion sideways to your target, which the
+threshold counts as a reason to brake but cannot correct — the only actions
+it can take are along the target line. Measured over one episode:
+
+| | speed toward target | speed sideways | frames moving away |
+|---|---|---|---|
+| threshold | 4.27 | 2.46 | 9% |
+| setpoint | 5.07 | 0.70 | 2% |
+
+The threshold version carries three times the junk velocity *and* makes less
+progress, because the junk velocity keeps tripping the brake test.
+
+Under time pressure, prefer the structure whose mistakes are cheap.
+
 ### 3.4 Bang-bang, chattering, hysteresis
 
 With a discrete on/off actuator you will oscillate around any setpoint. That
