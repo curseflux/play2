@@ -1,5 +1,8 @@
 # The DEBUG panel
 
+Dog score tables in this document describe the original course set. For the
+revised harder suite, see [practice/DOG_CHALLENGES.md](practice/DOG_CHALLENGES.md).
+
 Your policy is called 1200 times. `print()` gives you 1200 lines you will not
 read. The `DEBUG` dict gives you the same numbers **lined up with the frame
 they belong to**, so you can scrub to the moment it goes wrong and read what

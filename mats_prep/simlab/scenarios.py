@@ -14,6 +14,7 @@ from typing import List
 
 from .courier import CourierScenario, Hazard, Parcel
 from .dog import DogScenario, Pipe
+from .dog_challenges import VISIBLE_CHALLENGES, make_dog_challenge
 from .lander import LanderScenario
 
 
@@ -121,7 +122,6 @@ def make_dog(name: str, seed: int, *, n_pipes: int = 14, spacing: float = 50.0,
 def dog_visible() -> List[DogScenario]:
     return [
         make_dog("D1_warmup", seed=3, gap=16.0, max_step=14.0),
-        make_dog("D2_standard", seed=17, gap=13.0, max_step=16.0, target=12),
-        make_dog("D3_narrow", seed=29, gap=12.0, max_step=18.0, target=11),
-        make_dog("D4_low_roof", seed=43, gap=11.0, ceiling=44.0, max_step=12.0, target=10),
+        *(make_dog_challenge(name, seed, kind)
+          for name, seed, kind in VISIBLE_CHALLENGES),
     ]

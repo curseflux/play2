@@ -4,8 +4,8 @@ Read simlab/dog.py first. The docstring is the spec; the step() method below
 it is the ground truth.
 
     python3 grade.py dog --visible-only        # fast loop while you build
-    python3 watch.py dog D2_standard           # see what it is actually doing
-    python3 grade.py dog                       # visible + 14 hidden
+    python3 watch.py dog D2_apex               # see what it is actually doing
+    python3 grade.py dog                       # 9 visible + 16 hidden
     python3 tools/stress.py dog --n 200        # courses nobody curated
 
 Contract

@@ -44,20 +44,18 @@ COURIER = [
 ]
 
 DOG = [
-    dict(_label="gentle",      seed=201, gap=15.0, max_step=12.0),
-    dict(_label="needle",      seed=211, gap=10.5, max_step=14.0, target=10),
-    dict(_label="big_steps",   seed=223, gap=13.0, max_step=28.0, target=11),
-    dict(_label="tall_room",   seed=227, gap=13.0, ceiling=90.0, max_step=32.0, target=11),
-    dict(_label="squeeze",     seed=233, gap=11.0, ceiling=38.0, max_step=9.0, target=11),
-    dict(_label="tired_dog",   seed=239, gap=14.0, stamina_max=2, regen_period=8, target=11),
-    dict(_label="heavy_dog",   seed=251, gap=13.0, gravity=52.0, bounce_impulse=25.0, target=11),
-    dict(_label="floaty_dog",  seed=257, gap=13.0, gravity=13.0, bounce_impulse=12.5, target=11),
-    dict(_label="sprinter",    seed=263, gap=14.0, forward_speed=38.0, spacing=72.0, target=11),
-    dict(_label="crowded",     seed=269, gap=14.0, spacing=30.0, max_step=10.0, target=11),
-    dict(_label="one_eye",     seed=271, gap=13.0, sight=1, max_step=14.0, target=11),
-    dict(_label="ragged",      seed=277, gap=14.0, gap_jitter=4.0, max_step=18.0, target=11),
-    dict(_label="marathon",    seed=281, gap=13.0, n_pipes=30, max_step=16.0, target=24),
-    dict(_label="rerun_of_D2", seed=17,  gap=13.0, max_step=16.0, target=12),
+    dict(_label=f"{kind}_{variant}", seed=seed, kind=kind)
+    for kind, seeds in (
+        ("apex", (401, 409)),
+        ("climb", (419, 421)),
+        ("descent", (431, 433)),
+        ("slalom", (439, 443)),
+        ("tunnel", (449, 457)),
+        ("endurance", (461, 463)),
+        ("rising_start", (467, 479)),
+        ("falling_start", (487, 491)),
+    )
+    for variant, seed in enumerate(seeds, start=1)
 ]
 
 if __name__ == "__main__":

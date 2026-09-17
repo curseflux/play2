@@ -20,6 +20,11 @@ tests you cannot see.
 skill: `courier` rewards a good control law, `dog` rewards searching a short
 horizon. Do `courier` first.
 
+Dog now has **9 visible + 16 hidden cases** covering narrow apex crossings,
+stamina-limited climbs, early descents, slaloms, tunnels, and nonzero starting
+velocity. See [practice/DOG_CHALLENGES.md](practice/DOG_CHALLENGES.md) for the
+new suite, commands, and difficulty measurements.
+
 ## Do the practice problem
 
 ```bash
@@ -43,7 +48,8 @@ you have struggled is the one way to get nothing out of this.
 
 ## Calibration
 
-These are real numbers from this lab, so you know what a score means:
+These are historical numbers from the original lab. The dog column predates
+the harder course set; use DOG_CHALLENGES.md for current dog measurements.
 
 | policy | courier | lander | dog |
 |---|---|---|---|
@@ -52,7 +58,7 @@ These are real numbers from this lab, so you know what a score means:
 | …plus a second idea | — | 94% | 72% |
 | a good 60-minute answer | 100% | 100% | 100% |
 
-`dog` scores are on the graded set. On randomised unseen courses the same four
+These old `dog` scores are on the original graded set. On its randomised courses the same four
 policies get 0% / 64% / 70% / 87%.
 
 ## The other environment

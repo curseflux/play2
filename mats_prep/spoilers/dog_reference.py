@@ -6,8 +6,9 @@ run the grader.
     python3 spoilers/dog_reference.py                          # print it
     python3 grade.py dog --policy spoilers/dog_reference.py
 
-18/18 on the graded set, 87% on randomised courses. It is one good answer, not
-the answer. Compare STRUCTURE with yours, not constants.
+Originally 18/18 and 87% on the old courses. On the harder suite: 13/25 and
+100/200 stress cases (seed 1). See practice/DOG_CHALLENGES.md. This remains a
+learning example, not a complete solution to the revised task.
 """
 
 import base64

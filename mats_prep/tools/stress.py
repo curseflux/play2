@@ -8,8 +8,8 @@ The visible cases tell you whether your policy works. This tells you whether
 it works for a reason. A policy that scores well here is one that read the
 observation instead of memorising the five examples in front of it.
 
-A perfect score is not the goal - some random worlds are not survivable. Watch
-the NUMBER MOVE as you change your policy, and read the failure breakdown.
+Dog courses have a known feasible trajectory; the other random generators
+can produce impossible worlds. Read the failure breakdown as you improve.
 """
 
 from __future__ import annotations
@@ -28,8 +28,9 @@ from grade import DEFAULT_POLICY, load_policy                # noqa: E402
 from simlab.core import run_episode                          # noqa: E402
 from simlab.courier import CourierEnv                        # noqa: E402
 from simlab.dog import DogEnv                                 # noqa: E402
+from simlab.dog_challenges import KINDS, make_dog_challenge     # noqa: E402
 from simlab.lander import LanderEnv, LanderScenario          # noqa: E402
-from simlab.scenarios import make_courier, make_dog          # noqa: E402
+from simlab.scenarios import make_courier                   # noqa: E402
 
 
 def lander_cases(n: int, seed: int):
@@ -70,22 +71,9 @@ def courier_cases(n: int, seed: int):
 def dog_cases(n: int, seed: int):
     r = random.Random(seed)
     for i in range(n):
-        ceiling = r.uniform(34, 95)
-        gap = r.uniform(12.0, min(26.0, ceiling * 0.45))
-        g = r.uniform(14, 55)
-        # a bounce has to FIT in the gap: tie its rise to the usable band, not
-        # to the ceiling. Sizing it off the ceiling generates worlds where every
-        # bounce overshoots the gap and no policy can hold station.
-        band = max(2.0, gap - 2 * 1.5)
-        rise = r.uniform(0.25, 0.70) * band
-        yield make_dog(
-            f"rnd{i:03d}", seed=r.randrange(1 << 30),
-            n_pipes=r.randint(8, 26), spacing=r.uniform(30, 75),
-            gap=gap, ceiling=ceiling, max_step=r.uniform(8, 30),
-            gravity=g, bounce_impulse=math.sqrt(2 * g * rise),
-            forward_speed=r.uniform(14, 40), stamina_max=r.randint(3, 12),
-            regen_period=r.randint(4, 11), sight=r.randint(1, 4),
-            gap_jitter=r.choice([0.0, 0.0, 3.0]))
+        kind = KINDS[i % len(KINDS)]
+        yield make_dog_challenge(
+            f"rnd{i:03d}_{kind}", seed=r.randrange(1 << 30), kind=kind)
 
 
 def main() -> int:

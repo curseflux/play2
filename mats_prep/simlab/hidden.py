@@ -19,6 +19,7 @@ from typing import List, Tuple
 from ._hidden_blob import BLOB
 from .courier import CourierScenario
 from .dog import DogScenario
+from .dog_challenges import make_dog_challenge
 from .lander import LanderScenario
 from .scenarios import make_courier, make_dog
 
@@ -50,5 +51,6 @@ def dog_hidden() -> List[Tuple[str, DogScenario]]:
     out = []
     for i, kw in enumerate(data["dog"], start=1):
         real = kw.pop("_label")
-        out.append((f"hidden_D{i:02d}", make_dog(real, **kw)))
+        factory = make_dog_challenge if "kind" in kw else make_dog
+        out.append((f"hidden_D{i:02d}", factory(real, **kw)))
     return out
