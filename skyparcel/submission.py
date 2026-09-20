@@ -135,8 +135,9 @@ def choose(view):
 
     actions = heuristics(state, view)
 
-    # horizon = 10
-    horizon = 15
+    # horizon = 10 # Passed 16/18 | mean score 95.3/100 | slowest decision 22.88 ms
+    horizon = 12 # Passed 17/18 | mean score 96.4/100 | slowest decision 23.87 ms
+    # horizon = 15 # Passed 17/18 | mean score 96.4/100 | slowest decision 145.40 ms
 
     best = (0, False, False, False, "press")
 
