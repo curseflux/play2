@@ -15,12 +15,16 @@ From this folder in PowerShell:
 .\practice.cmd replay C02
 .\practice.cmd test --all --policy old
 .\practice.cmd stress --count 20 --seed 1
+.\practice.cmd test --policy solution_practice.py
 ```
 
 `current` means `../solution.py`; `old` means `../solution_old.py`. Both can be
 compared with `--policy`. You may also pass a Python file path. The output
 reports pipes passed, pass count, and slowest decision. A 40 ms per-decision
 budget is advisory. Exceptions or malformed policy outputs fail the case.
+
+`../solution_practice.py` is a separate worked candidate. Read
+`../WALKTHROUGH.md` for the reasoning and measured tradeoffs.
 
 `replay CASE` writes a self-contained HTML file in `replays/`. Open it in any
 browser, press Play, or scrub through frames. It shows pipe geometry, the dog,
@@ -41,8 +45,9 @@ by the policy. The last frame shows the actual terminal state from the engine.
 | C08 | Safe route approaches the ground |
 | C09 | Five-pipe endurance run |
 
-There are **9 visible and 16 hidden** courses. Hidden test results show only
-pass/fail. Stress creates fresh variants from the same families. Each packaged
+All **25 courses are visible**. The default test command runs all of them,
+and every C or X case supports detailed results and replays. `--all` is an
+alias for the default full suite. Stress creates fresh variants from the same families. Each packaged
 course has a successful action witness checked against the supplied engine.
 For C02, the generator also verifies that adding a bounce on the first
 overlap frame makes the otherwise successful path collide shortly afterward.

@@ -21,7 +21,7 @@ def witnesses():
 class CheckCourses(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.all_courses = courses() + courses(True)
+        cls.all_courses = courses()
         cls.actions = witnesses()
 
     def test_all_25_packaged_routes(self):

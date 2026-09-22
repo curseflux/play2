@@ -1,6 +1,5 @@
 """Practice grader using the supplied engine.py without modifying it."""
 import argparse
-import base64
 import copy
 import importlib.util
 import json
@@ -8,7 +7,6 @@ from pathlib import Path
 import random
 import sys
 import time
-import zlib
 
 ROOT = Path(__file__).resolve().parent
 PROJECT = ROOT.parent
@@ -17,10 +15,7 @@ import engine
 from replay import write_replay
 
 
-def courses(hidden=False):
-    if hidden:
-        return json.loads(zlib.decompress(base64.b64decode(
-            (ROOT / '_author' / 'hidden.dat').read_text(encoding='ascii'))))
+def courses():
     return json.loads((ROOT / 'visible.json').read_text(encoding='utf-8'))
 
 
@@ -104,7 +99,7 @@ def main(argv=None):
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('list')
     test = commands.add_parser('test')
-    test.add_argument('--all', action='store_true')
+    test.add_argument('--all', action='store_true', help='alias for the default full suite')
     test.add_argument('--case')
     replay = commands.add_parser('replay')
     replay.add_argument('case')
@@ -141,21 +136,14 @@ def main(argv=None):
                     for i in range(args.count)]
     else:
         selected = list(visible)
-        if args.all:
-            private = courses(True)
-            random.Random(851).shuffle(private)
-            selected.extend(private)
     results = []
     for c in selected:
         result, frames = run(c, module, args.command == 'replay')
         results.append(result)
         label = 'PASS' if result['passed'] else 'FAIL'
-        if c['mapName'].startswith('X'):
-            print(f"{label} {result['name']}", flush=True)
-        else:
-            print(f"{label} {result['name']} {result['challenge']:<12} "
-                  f"{result['score']}/{result['total']} pipes  "
-                  f"{result['reason']}", flush=True)
+        print(f"{label} {result['name']} {result['challenge']:<12} "
+              f"{result['score']}/{result['total']} pipes  "
+              f"{result['reason']}", flush=True)
         if args.command == 'replay':
             path = ROOT / 'replays' / f"{c['mapName']}.html"
             write_replay(path, c, result, frames)

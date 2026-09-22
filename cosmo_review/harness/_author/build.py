@@ -21,7 +21,7 @@ STYLES = ('warmup', 'entry_trap', 'adjacent', 'narrow', 'reversal',
           'overlap', 'ceiling', 'floor', 'long_run')
 PUBLIC = [(f'C{i + 1:02}', 7079 + 97 * i, style)
           for i, style in enumerate(STYLES)]
-PRIVATE = [(f'X{i + 1:02}', 19001 + 83 * i, STYLES[1 + i % 8])
+EXTRA = [(f'X{i + 1:02}', 19001 + 83 * i, STYLES[1 + i % 8])
            for i in range(16)]
 
 
@@ -199,18 +199,17 @@ def packed(value):
 
 
 def main():
-    visible, hidden, witnesses = [], [], {}
-    for dest, specs in ((visible, PUBLIC), (hidden, PRIVATE)):
+    visible, extra, witnesses = [], [], {}
+    for dest, specs in ((visible, PUBLIC), (extra, EXTRA)):
         for name, seed, style in specs:
             course, actions = build(name, seed, style)
             dest.append(course)
             witnesses[name] = actions
             print(name, style, 'pipes', len(course['pipes']), 'gap',
                   [round(p['gap'], 1) for p in course['pipes']], flush=True)
-    (OUT / 'visible.json').write_text(json.dumps(visible, indent=2)+'\n', encoding='utf-8')
-    (OUT / '_author' / 'hidden.dat').write_text(packed(hidden), encoding='ascii')
+    (OUT / 'visible.json').write_text(json.dumps(visible + extra, indent=2)+'\n', encoding='utf-8')
     (OUT / '_author' / 'witnesses.dat').write_text(packed(witnesses), encoding='ascii')
-    print('Verified', len(visible), 'visible and', len(hidden), 'hidden courses.')
+    print('Verified', len(visible) + len(extra), 'visible courses.')
 
 
 if __name__ == '__main__':
