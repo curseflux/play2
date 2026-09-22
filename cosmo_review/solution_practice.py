@@ -1,6 +1,8 @@
 """Small survival search: longer lookahead, cached failures, precomputed gaps."""
 
-HORIZON = 60
+HORIZON = 60 # Passed 25/25 | mean pipe progress 100.0% | slowest decision 139.32 ms
+# HORIZON = 50 # Passed 23/25 | mean pipe progress 97.2% | slowest decision 168.23 ms
+# HORIZON = 40 # Passed 21/25 | mean pipe progress 91.9% | slowest decision 44.66 ms
 
 
 def should_bounce(params):
