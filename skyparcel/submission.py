@@ -110,12 +110,12 @@ def max_survival(state, view, horizon):
             next_state['carrying']
         )
 
-        if score[1] > best[1]: # Deliveries first
+        if score[0] > best[0]:
             best = score
-        elif score[1] == best[1] and score[2] > best[2]: # Pickups second
+        elif score[0] == best[0] and score[1] > best[1]:
             best = score
-        elif score[1] == best[1] and score[2] == best[2] and score[0] > best[0]: # Survival third
-            best = score
+        elif score[0] == best[0] and score[1] == best[1] and score[2] > best[2]:
+            best == score
 
         if best[0] == horizon and best[1] and best[3]:
             break
