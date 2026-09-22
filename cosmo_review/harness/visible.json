@@ -1,0 +1,328 @@
+[
+  {
+    "mapName": "C01",
+    "cosmo": {
+      "x": 18.0,
+      "y": 100.32897335568887,
+      "velocity": 1.261656445567794,
+      "gravity": 0.6968731782073542,
+      "bouncePower": -7.738151548236171,
+      "width": 18.0,
+      "height": 18.0
+    },
+    "pipes": [
+      {
+        "position": 110.80000000000007,
+        "topHeight": 0.0,
+        "gap": 230
+      },
+      {
+        "position": 254.79999999999964,
+        "topHeight": 0.0,
+        "gap": 230
+      }
+    ],
+    "pipeSpeed": 3.2,
+    "frameTime": 16,
+    "canvasHeight": 250,
+    "canvasWidth": 800,
+    "groundHeight": 20,
+    "pipeWidth": 18.0,
+    "challenge": "warmup",
+    "tags": []
+  },
+  {
+    "mapName": "C02",
+    "cosmo": {
+      "x": 18.0,
+      "y": 116.66672654780302,
+      "velocity": -0.43277254615260885,
+      "gravity": 0.5500846231349487,
+      "bouncePower": -7.017670036783612,
+      "width": 18.0,
+      "height": 18.0
+    },
+    "pipes": [
+      {
+        "position": 172.00000000000009,
+        "topHeight": 55.47988576647093,
+        "gap": 55.83785442322865
+      },
+      {
+        "position": 256.0000000000004,
+        "topHeight": 40.2625546103735,
+        "gap": 42.003917008594655
+      }
+    ],
+    "pipeSpeed": 2.8,
+    "frameTime": 16,
+    "canvasHeight": 250,
+    "canvasWidth": 800,
+    "groundHeight": 20,
+    "pipeWidth": 18.0,
+    "challenge": "entry_trap",
+    "tags": [
+      "bounce_at_entry_hits_top"
+    ]
+  },
+  {
+    "mapName": "C03",
+    "cosmo": {
+      "x": 18.0,
+      "y": 104.22238151035481,
+      "velocity": 0.3368918070138909,
+      "gravity": 0.6303960961452238,
+      "bouncePower": -7.078876374840977,
+      "width": 18.0,
+      "height": 18.0
+    },
+    "pipes": [
+      {
+        "position": 159.0,
+        "topHeight": 85.38006992443053,
+        "gap": 52.645227740317495
+      },
+      {
+        "position": 192.0,
+        "topHeight": 76.76379988708203,
+        "gap": 33.73334485596078
+      },
+      {
+        "position": 285.0,
+        "topHeight": 42.56288404363515,
+        "gap": 61.11697846042247
+      }
+    ],
+    "pipeSpeed": 3.0,
+    "frameTime": 16,
+    "canvasHeight": 250,
+    "canvasWidth": 800,
+    "groundHeight": 20,
+    "pipeWidth": 18.0,
+    "challenge": "adjacent",
+    "tags": [
+      "close_misaligned_gaps"
+    ]
+  },
+  {
+    "mapName": "C04",
+    "cosmo": {
+      "x": 18.0,
+      "y": 104.31156336779014,
+      "velocity": 1.7594963344309522,
+      "gravity": 0.6197842844149906,
+      "bouncePower": -7.349993502967049,
+      "width": 18.0,
+      "height": 18.0
+    },
+    "pipes": [
+      {
+        "position": 129.99999999999991,
+        "topHeight": 67.757290155683,
+        "gap": 43.09899542905514
+      },
+      {
+        "position": 233.60000000000034,
+        "topHeight": 58.58820822353281,
+        "gap": 41.61289095883698
+      }
+    ],
+    "pipeSpeed": 2.8,
+    "frameTime": 16,
+    "canvasHeight": 250,
+    "canvasWidth": 800,
+    "groundHeight": 20,
+    "pipeWidth": 14.0,
+    "challenge": "narrow",
+    "tags": []
+  },
+  {
+    "mapName": "C05",
+    "cosmo": {
+      "x": 18.0,
+      "y": 100.71171853743299,
+      "velocity": 0.816891587097984,
+      "gravity": 0.6181370486156504,
+      "bouncePower": -6.843053848887587,
+      "width": 18.0,
+      "height": 18.0
+    },
+    "pipes": [
+      {
+        "position": 168.39999999999995,
+        "topHeight": 32.69568030507797,
+        "gap": 32.533333613927354
+      },
+      {
+        "position": 203.59999999999982,
+        "topHeight": 41.75000446373557,
+        "gap": 54.26371159470556
+      },
+      {
+        "position": 302.7999999999995,
+        "topHeight": 59.744991140703576,
+        "gap": 51.25163032885861
+      }
+    ],
+    "pipeSpeed": 3.2,
+    "frameTime": 16,
+    "canvasHeight": 250,
+    "canvasWidth": 800,
+    "groundHeight": 20,
+    "pipeWidth": 18.0,
+    "challenge": "reversal",
+    "tags": [
+      "close_misaligned_gaps"
+    ]
+  },
+  {
+    "mapName": "C06",
+    "cosmo": {
+      "x": 18.0,
+      "y": 118.78169704910184,
+      "velocity": -1.147618435140553,
+      "gravity": 0.608319060114731,
+      "bouncePower": -7.345627646906716,
+      "width": 18.0,
+      "height": 18.0
+    },
+    "pipes": [
+      {
+        "position": 174.79999999999993,
+        "topHeight": 69.68549530492895,
+        "gap": 58.299065619030955
+      },
+      {
+        "position": 193.99999999999986,
+        "topHeight": 60.2859158500283,
+        "gap": 54.83234696046236
+      },
+      {
+        "position": 309.1999999999995,
+        "topHeight": 28.221201525213758,
+        "gap": 63.8655350111234
+      }
+    ],
+    "pipeSpeed": 3.2,
+    "frameTime": 16,
+    "canvasHeight": 250,
+    "canvasWidth": 800,
+    "groundHeight": 20,
+    "pipeWidth": 18.0,
+    "challenge": "overlap",
+    "tags": [
+      "close_misaligned_gaps"
+    ]
+  },
+  {
+    "mapName": "C07",
+    "cosmo": {
+      "x": 18.0,
+      "y": 107.52638189690201,
+      "velocity": 1.2405230492932389,
+      "gravity": 0.6132994157862496,
+      "bouncePower": -7.233550056857386,
+      "width": 18.0,
+      "height": 18.0
+    },
+    "pipes": [
+      {
+        "position": 147.0,
+        "topHeight": 33.76806647828557,
+        "gap": 50.640875991065734
+      },
+      {
+        "position": 249.0,
+        "topHeight": 11.085267138431075,
+        "gap": 32.5692765739057
+      }
+    ],
+    "pipeSpeed": 3.0,
+    "frameTime": 16,
+    "canvasHeight": 250,
+    "canvasWidth": 800,
+    "groundHeight": 20,
+    "pipeWidth": 18.0,
+    "challenge": "ceiling",
+    "tags": []
+  },
+  {
+    "mapName": "C08",
+    "cosmo": {
+      "x": 18.0,
+      "y": 100.28645556450287,
+      "velocity": -1.5963918389669383,
+      "gravity": 0.7332028744426532,
+      "bouncePower": -6.927533914151466,
+      "width": 18.0,
+      "height": 18.0
+    },
+    "pipes": [
+      {
+        "position": 107.59999999999992,
+        "topHeight": 125.98268887215372,
+        "gap": 57.62598453851689
+      },
+      {
+        "position": 233.60000000000034,
+        "topHeight": 119.07892403152876,
+        "gap": 42.22872417522119
+      }
+    ],
+    "pipeSpeed": 2.8,
+    "frameTime": 16,
+    "canvasHeight": 250,
+    "canvasWidth": 800,
+    "groundHeight": 20,
+    "pipeWidth": 18.0,
+    "challenge": "floor",
+    "tags": []
+  },
+  {
+    "mapName": "C09",
+    "cosmo": {
+      "x": 18.0,
+      "y": 95.9792005068747,
+      "velocity": 1.5514665795289666,
+      "gravity": 0.6879398455092645,
+      "bouncePower": -7.692039301116115,
+      "width": 18.0,
+      "height": 18.0
+    },
+    "pipes": [
+      {
+        "position": 94.80000000000005,
+        "topHeight": 74.60076465000566,
+        "gap": 52.081447971776086
+      },
+      {
+        "position": 177.99999999999991,
+        "topHeight": 52.225092648253366,
+        "gap": 65.0837015081516
+      },
+      {
+        "position": 261.19999999999965,
+        "topHeight": 36.660215573293215,
+        "gap": 39.698530752609315
+      },
+      {
+        "position": 344.39999999999935,
+        "topHeight": 34.60473340748993,
+        "gap": 69.46907995296013
+      },
+      {
+        "position": 427.59999999999906,
+        "topHeight": 48.56100353185218,
+        "gap": 60.33672611788725
+      }
+    ],
+    "pipeSpeed": 3.2,
+    "frameTime": 16,
+    "canvasHeight": 250,
+    "canvasWidth": 800,
+    "groundHeight": 20,
+    "pipeWidth": 18.0,
+    "challenge": "long_run",
+    "tags": []
+  }
+]
