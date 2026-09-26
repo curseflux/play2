@@ -1,130 +1,80 @@
-"""Beam search with named states and sets of collected coin IDs."""
+"""Small beam search: keep 32 promising flights, plan up to 40 frames ahead."""
 import math
-
-HORIZON = 40
-BEAM_WIDTH = 32
-COIN_REWARD = 1000
-
-
-def collection_windows(coins, future_x, bird_width, bird_height):
-    """Find the bird heights that would touch each coin at this future x."""
-    windows = []
-    for coin in coins:
-        # Horizontal distance from the coin center to the bird's rectangle.
-        nearest_x = max(future_x, min(coin['x'], future_x + bird_width))
-        horizontal_distance = abs(coin['x'] - nearest_x)
-        if horizontal_distance > coin['radius']:
-            continue
-
-        # Circle geometry gives the remaining vertical reach at this x.
-        vertical_reach = math.sqrt(max(
-            0, coin['radius'] ** 2 - horizontal_distance ** 2))
-        windows.append({
-            'coin_id': coin['id'],
-            'minimum_y': coin['y'] - vertical_reach - bird_height,
-            'maximum_y': coin['y'] + vertical_reach,
-        })
-    return windows
 
 
 def should_bounce(params):
     bird = params['cosmo']
-    gravity = bird['gravity']
-    bounce_velocity = bird['bouncePower']
+    x, y, velocity = bird['x'], bird['y'], bird['velocity']
+    gravity, bounce = bird['gravity'], bird['bouncePower']
+    width, height = bird['width'], bird['height']
     speed = params['scrollSpeed']
-    maximum_y = params['canvasHeight'] - params['groundHeight'] - bird['height']
-    coins_needed = max(0, params['coinTarget'] - params['coinsCollected'])
-    frames_to_finish = max(1, math.ceil((params['finishX'] - bird['x']) / speed))
-    horizon = min(HORIZON, params['framesLeft'], frames_to_finish)
+    floor = params['canvasHeight'] - params['groundHeight'] - height
+    need = max(0, params['coinTarget'] - params['coinsCollected'])
+    horizon = min(40, params['framesLeft'],
+                  max(1, math.ceil((params['finishX'] - x) / speed)))
 
-    # Ignore optional coins wholly inside the ground.
-    coins = [coin for coin in params['coins']
-             if coin['y'] - coin['radius'] <= maximum_y + bird['height']]
+    # Coins wholly inside the ground cannot be collected alive.
+    coins = [c for c in params['coins']
+             if c['y'] - c['radius'] <= floor + height]
 
-    # All paths share the same x at each depth. Calculate pickup geometry once.
-    windows_by_step = []
+    # At each future x, turn circle/rectangle contact into a legal y interval.
+    # This geometry is shared by every candidate flight at that depth.
+    contacts = []
     for step in range(1, horizon + 1):
-        future_x = bird['x'] + speed * step
-        windows_by_step.append(collection_windows(
-            coins, future_x, bird['width'], bird['height']))
+        future_x = x + speed * step
+        intervals = []
+        for i, coin in enumerate(coins):
+            dx = max(future_x - coin['x'], coin['x'] - future_x - width, 0)
+            if dx <= coin['radius']:
+                reach = math.sqrt(max(0, coin['radius'] ** 2 - dx ** 2))
+                intervals.append((1 << i, coin['y'] - reach - height,
+                                  coin['y'] + reach))
+        contacts.append(intervals)
 
-    def score_state(state, future_x):
-        useful_coins = min(coins_needed, len(state['collected_coin_ids']))
-        target_y = maximum_y / 2
-        prediction_frames = 4.0
+    def rank(y, vy, mask, future_x):
+        count = min(need, mask.bit_count())
+        target_y = floor / 2
+        lookahead = 4.0
+        if count < need:
+            for i, coin in enumerate(coins):
+                if not mask & (1 << i) and future_x <= coin['x'] + coin['radius']:
+                    target_y = max(0, min(floor, coin['y'] - height / 2))
+                    lookahead = min(6.0, max(0, (coin['x'] - future_x - width / 2) / speed))
+                    break
+        predicted_y = y + vy * lookahead + gravity * lookahead * (lookahead + 1) / 2
+        return 1000 * count - abs(predicted_y - target_y)
 
-        if useful_coins < coins_needed:
-            for coin in coins:
-                already_collected = coin['id'] in state['collected_coin_ids']
-                already_passed = future_x > coin['x'] + coin['radius']
-                if already_collected or already_passed:
-                    continue
-                target_y = max(0, min(maximum_y, coin['y'] - bird['height'] / 2))
-                frames_to_coin = (coin['x'] - future_x - bird['width'] / 2) / speed
-                prediction_frames = min(6.0, max(0, frames_to_coin))
-                break
-
-        # Estimate where momentum will carry the bird if it glides briefly.
-        predicted_y = (state['y'] + state['velocity'] * prediction_frames
-                       + gravity * prediction_frames * (prediction_frames + 1) / 2)
-        return COIN_REWARD * useful_coins - abs(predicted_y - target_y)
-
-    beam = [{
-        'y': bird['y'],
-        'velocity': bird['velocity'],
-        # A frozenset is a set that cannot be modified accidentally by a branch.
-        'collected_coin_ids': frozenset(),
-        'first_action': False,
-    }]
-    chosen_action = False
-
+    # A node contains position, velocity, collected-coin bits and FIRST action.
+    beam = [(y, velocity, 0, False)]
+    chosen = False
     for depth in range(horizon):
         candidates = {}
-        future_x = bird['x'] + speed * (depth + 1)
-        finished = (future_x >= params['finishX']
-                    or depth + 1 >= params['framesLeft'])
-
-        for state in beam:
-            # Movement happens BEFORE the chosen bounce takes effect.
-            velocity_after_movement = state['velocity'] + gravity
-            next_y = state['y'] + velocity_after_movement
-            if next_y > maximum_y:
-                continue  # Ground collision: discard this path.
-            if next_y < 0:
-                next_y = 0.0
-                velocity_after_movement = 0.0
-
-            # Copy this path's coin set so sibling paths stay independent.
-            collected_ids = set(state['collected_coin_ids'])
-            for window in windows_by_step[depth]:
-                if window['minimum_y'] <= next_y <= window['maximum_y']:
-                    collected_ids.add(window['coin_id'])
-            collected_ids = frozenset(collected_ids)
-
+        future_x = x + speed * (depth + 1)
+        terminal = future_x >= params['finishX'] or depth + 1 >= params['framesLeft']
+        for old_y, old_vy, mask, first in beam:
+            vy = old_vy + gravity
+            new_y = old_y + vy
+            if new_y > floor:
+                continue
+            if new_y < 0:
+                new_y, vy = 0.0, 0.0
+            new_mask = mask
+            for bit, lo, hi in contacts[depth]:
+                if lo <= new_y <= hi:
+                    new_mask |= bit
             for action in (False, True):
-                next_velocity = velocity_after_movement
-                if action and not finished:
-                    next_velocity = bounce_velocity
-                next_state = {
-                    'y': next_y,
-                    'velocity': next_velocity,
-                    'collected_coin_ids': collected_ids,
-                    'first_action': action if depth == 0 else state['first_action'],
-                }
-                next_state['score'] = score_state(next_state, future_x)
-
-                # Merge similar states, keeping the better actual state.
-                key = (round(next_y / 2), round(next_velocity),
-                       collected_ids, next_state['first_action'])
-                existing = candidates.get(key)
-                if existing is None or next_state['score'] > existing['score']:
-                    candidates[key] = next_state
-
+                new_vy = bounce if action and not terminal else vy
+                first_action = action if depth == 0 else first
+                node = (new_y, new_vy, new_mask, first_action)
+                score = rank(new_y, new_vy, new_mask, future_x)
+                # Merge nearly identical flights; keep the better actual state.
+                key = (round(new_y / 2), round(new_vy), new_mask, first_action)
+                if key not in candidates or score > candidates[key][0]:
+                    candidates[key] = (score, node)
         if not candidates:
-            break  # Keep the choice from the deepest surviving layer.
-        beam = sorted(candidates.values(),
-                      key=lambda state: state['score'], reverse=True)[:BEAM_WIDTH]
-        chosen_action = beam[0]['first_action']
+            break  # Use the best first action from the deepest surviving layer.
+        ordered = sorted(candidates.values(), key=lambda item: item[0], reverse=True)
+        beam = [node for _, node in ordered[:32]]
+        chosen = beam[0][3]
 
-    return {'shouldBounce': chosen_action,
-            'log': f'lookahead={horizon}, need={coins_needed}'}
+    return {'shouldBounce': chosen, 'log': f'lookahead={horizon}, need={need}'}
