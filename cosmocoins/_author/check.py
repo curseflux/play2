@@ -10,7 +10,7 @@ import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from engine import World, touches_coin
+from engine import touches_coin
 from assess import courses, run
 from _author.build import STYLES, build
 
@@ -24,6 +24,13 @@ def simple():
                 coinTarget=0)
 
 
+def play(course, actions):
+    def decide(obs):
+        frame = obs['frameNumber']
+        return {'shouldBounce': actions[frame] if frame < len(actions) else False}
+    return run(course, types.SimpleNamespace(should_bounce=decide), record=True)
+
+
 class Checks(unittest.TestCase):
     def test_packaged_and_fresh_feasibility(self):
         witnesses = json.loads(zlib.decompress(base64.b64decode(
@@ -32,57 +39,47 @@ class Checks(unittest.TestCase):
         self.assertEqual(len(maps), 18)
         for c in maps:
             before = copy.deepcopy(c)
-            w = World(c)
-            for action in witnesses[c['mapName']]:
-                w.step(action)
-            self.assertTrue(w.passed, w.result())
+            result, _ = play(c, witnesses[c['mapName']])
+            self.assertTrue(result['passed'], result)
             self.assertEqual(before, c)
         for style in STYLES:
             for seed in range(10):
                 c, actions = build('fresh', 59 + 701*seed, style)
-                w = World(c)
-                for action in actions:
-                    w.step(action)
-                self.assertTrue(w.passed, (style, seed, w.result()))
+                result, _ = play(c, actions)
+                self.assertTrue(result['passed'], (style, seed, result))
 
     def test_delayed_bounce_and_terminal_action(self):
-        a, b = World(simple()), World(simple())
-        a.step(True)
-        b.step(False)
-        self.assertEqual(a.cosmo['y'], 31.)
-        self.assertEqual(a.cosmo['y'], b.cosmo['y'])
-        self.assertEqual(a.cosmo['velocity'], -8.)
-        a.step(False)
-        self.assertEqual(a.cosmo['y'], 24.)
+        _, a = play(simple(), [True, False])
+        _, b = play(simple(), [False])
+        self.assertEqual(a[1]['y'], 31.)
+        self.assertEqual(a[1]['y'], b[1]['y'])
+        self.assertEqual(a[1]['velocity'], -8.)
+        self.assertEqual(a[2]['y'], 24.)
         c = simple()
         c['finishX'] = 2.
-        w = World(c)
-        w.step(True)
-        self.assertTrue(w.passed)
-        self.assertEqual(w.cosmo['velocity'], 1.)
+        result, frames = play(c, [True])
+        self.assertTrue(result['passed'])
+        self.assertEqual(frames[-1]['velocity'], 1.)
 
     def test_floor_precedes_x_collection_and_bounce(self):
         c = simple()
         c['cosmo']['y'] = 80.
         c['coins'] = [dict(x=7., y=85., radius=2.)]
-        w = World(c)
-        w.step(True)
-        self.assertEqual(w.reason, 'ground collision')
-        self.assertEqual(w.cosmo['x'], 0.)
-        self.assertEqual(w.collected, 0)
-        self.assertEqual(w.cosmo['velocity'], 1.)
+        result, frames = play(c, [True])
+        self.assertEqual(result['reason'], 'ground collision')
+        self.assertEqual(frames[-1]['x'], 0.)
+        self.assertEqual(result['coins'], 0)
+        self.assertEqual(frames[-1]['velocity'], 1.)
         c['cosmo'].update(y=80., velocity=-1.)
-        w = World(c)
-        w.step(False)
-        self.assertFalse(w.done)  # Exact contact with ground is permitted.
+        _, frames = play(c, [False])
+        self.assertFalse(frames[1]['done'])  # Exact ground contact is permitted.
 
     def test_ceiling_clamp(self):
         c = simple()
         c['cosmo'].update(y=0., velocity=-3.)
-        w = World(c)
-        w.step(False)
-        self.assertEqual((w.cosmo['y'], w.cosmo['velocity']), (0., 0.))
-        self.assertFalse(w.done)
+        _, frames = play(c, [False])
+        self.assertEqual((frames[1]['y'], frames[1]['velocity']), (0., 0.))
+        self.assertFalse(frames[1]['done'])
 
     def test_circle_rectangle_pickup(self):
         bird = simple()['cosmo']
@@ -94,17 +91,14 @@ class Checks(unittest.TestCase):
         c = simple()
         c.update(coinTarget=2, finishX=4.)
         c['coins'] = [dict(x=7., y=36., radius=2.), dict(x=8., y=37., radius=2.)]
-        w = World(c)
-        w.step(False)
-        self.assertEqual(w.collected, 2)
-        self.assertEqual(w.observe()['coins'], [])
-        w.step(False)
-        self.assertEqual(w.collected, 2)
-        self.assertTrue(w.passed)
+        result, frames = play(c, [False, False])
+        self.assertEqual(frames[1]['collected'], 2)
+        self.assertEqual(frames[1]['coin_states'], ['collected', 'collected'])
+        self.assertEqual(result['coins'], 2)
+        self.assertTrue(result['passed'])
         c['finishX'] = 2.
-        w = World(c)
-        w.step(False)
-        self.assertTrue(w.passed)
+        result, _ = play(c, [False])
+        self.assertTrue(result['passed'])
 
     def test_ground_bait_really_unreachable(self):
         for c in courses():
@@ -124,10 +118,14 @@ class Checks(unittest.TestCase):
         invalid = types.SimpleNamespace(should_bounce=lambda _: {'shouldBounce':1})
         result, _ = run(c, invalid)
         self.assertEqual(result['score'], 0.)
-        w = World(c)
-        obs = w.observe()
-        obs['cosmo']['gravity'] = 999
-        self.assertEqual(w.cosmo['gravity'], 1.)
+        seen = []
+        def mutate(obs):
+            seen.append(obs['cosmo']['gravity'])
+            obs['cosmo']['gravity'] = 999
+            return {'shouldBounce': False}
+        run(c, types.SimpleNamespace(should_bounce=mutate))
+        self.assertTrue(seen)
+        self.assertTrue(all(gravity == 1. for gravity in seen))
 
 
 if __name__ == '__main__':

@@ -9,6 +9,10 @@ position is the bird's top-left corner, ceiling contact clamps, and the selected
 bounce is applied AFTER this frame's movement. Coins use circle-versus-rectangle
 overlap. Read RULES.md and engine.py for the exact order and observations.
 
+Like cosmo_review, `engine.py` uses a single `simulate_game(params)` loop.
+The only helper is `touches_coin`, which checks collection. Scoring and replay
+recording live in `assess.py`, so the engine stays focused on the game rules.
+
 ## Try it
 
 From this folder in PowerShell:

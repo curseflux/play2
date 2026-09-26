@@ -6,10 +6,11 @@ from pathlib import Path
 import random
 import sys
 import zlib
+import types
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from engine import World, touches_coin
+from assess import run
 
 STYLES = ('warmup', 'row', 'zigzag', 'clusters', 'forks', 'ground_bait',
           'ceiling', 'fast_scroll', 'longhaul')
@@ -37,11 +38,12 @@ def construct(name, seed, style):
              scrollSpeed=speed, frameTime=16, canvasHeight=270, canvasWidth=900,
              groundHeight=22, finishX=bird['x'] + (n - .25)*speed,
              maxFrames=n+10, coinTarget=0)
-    w = World(c)
-    frames, actions = [w.snapshot()], []
+    actions = []
     phase = rng.uniform(-math.pi, math.pi)
     period = rng.uniform(24, 33)
-    for tick in range(n):
+    def guide(obs):
+        tick = obs['frameNumber']
+        current = obs['cosmo']
         amplitude = 42 if style in ('zigzag', 'forks') else 22
         target = 120 + amplitude * math.sin(tick / period + phase)
         if style == 'row':
@@ -50,13 +52,11 @@ def construct(name, seed, style):
             target -= 65
         if style == 'ground_bait':
             target += 55
-        action = w.cosmo['y'] + bird['height']/2 + 2.6*w.cosmo['velocity'] > target + 3
+        action = current['y'] + bird['height']/2 + 2.6*current['velocity'] > target + 3
         actions.append(bool(action))
-        w.step(bool(action))
-        frames.append(w.snapshot())
-        if w.done and not w.passed:
-            return None
-    if not w.passed:
+        return {'shouldBounce': bool(action)}
+    result, frames = run(c, types.SimpleNamespace(should_bounce=guide), record=True)
+    if not result['passed']:
         return None
     ticks = list(range(24, n-10, 19 if style == 'longhaul' else 21))
     for tick in ticks:
@@ -80,14 +80,12 @@ def construct(name, seed, style):
     obtainable = len(ticks) * (2 if style == 'clusters' else 1)
     c['coinTarget'] = 0 if style == 'warmup' else max(1, obtainable - (
         2 if style in ('longhaul', 'clusters') else 1))
-    proof = World(c)
-    for action in actions:
-        proof.step(action)
-        if proof.done:
-            break
-    if not proof.passed or proof.collected < obtainable:
+    scripted = types.SimpleNamespace(should_bounce=lambda obs: {
+        'shouldBounce': actions[obs['frameNumber']]})
+    proof, _ = run(c, scripted)
+    if not proof['passed'] or proof['coins'] < obtainable:
         return None
-    return c, actions[:proof.frame]
+    return c, actions[:proof['frames']]
 
 
 def main():

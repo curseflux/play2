@@ -7,7 +7,7 @@ from pathlib import Path
 import random
 import time
 
-from engine import World
+import engine
 from replay import write_replay
 
 ROOT = Path(__file__).resolve().parent
@@ -32,31 +32,51 @@ def load_policy(filename):
 
 
 def run(course, module, record=False):
-    world, frames, peak, error = World(course), [], 0.0, None
-    while not world.done:
-        obs = copy.deepcopy(world.observe())
+    params = copy.deepcopy(course)
+    frames, peak, error = [], 0.0, None
+
+    def decide(obs):
+        nonlocal peak
         before = time.perf_counter()
         try:
             answer = module.should_bounce(obs)
             if not isinstance(answer, dict) or type(answer.get('shouldBounce')) is not bool:
                 raise ValueError('return a dict containing bool shouldBounce')
-        except Exception as exc:
-            error = f'{type(exc).__name__}: {exc}'
+        finally:
             peak = max(peak, 1000*(time.perf_counter()-before))
-            break
-        peak = max(peak, 1000*(time.perf_counter()-before))
-        action = answer['shouldBounce']
         if record:
-            f = world.snapshot()
-            f.update(action=action, log=str(answer.get('log', ''))[:2000])
-            frames.append(f)
-        world.step(action)
-    result = world.result(error)
-    result['max_ms'] = peak
+            frames.append(dict(frame=obs['frameNumber'], **obs['cosmo'],
+                               collected=obs['coinsCollected'],
+                               coin_states=list(params['coinStates']), done=False,
+                               reason='flying', action=answer['shouldBounce'],
+                               log=str(answer.get('log', ''))[:2000]))
+        return answer
+
+    saved = engine.should_bounce
+    try:
+        engine.should_bounce = decide
+        _, _, _, passed, collected = engine.simulate_game(params)
+    except Exception as exc:
+        error = f'{type(exc).__name__}: {exc}'
+        passed, collected = False, params.get('coinsCollected', 0)
+    finally:
+        engine.should_bounce = saved
+
+    progress = min(1.0, max(0.0, (params['cosmo']['x'] - course['cosmo']['x']) /
+                          (course['finishX'] - course['cosmo']['x'])))
+    target = course['coinTarget']
+    reward = min(1.0, collected/target) if target else 1.0
+    score = 50*(progress+reward) if target else 100*progress
+    reason = error or params['reason']
+    result = dict(name=course['mapName'], challenge=course['challenge'],
+                  passed=passed and error is None, coins=collected, target=target,
+                  total=len(course['coins']), progress=progress,
+                  score=0.0 if error else score, frames=params['framesElapsed'],
+                  reason=reason, max_ms=peak)
     if record:
-        f = world.snapshot()
-        f.update(action=None, log=result['reason'])
-        frames.append(f)
+        frames.append(dict(frame=params['framesElapsed'], **params['cosmo'],
+                           collected=collected, coin_states=list(params['coinStates']),
+                           done=error is None, reason=reason, action=None, log=reason))
     return result, frames
 
 
